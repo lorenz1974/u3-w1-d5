@@ -1,6 +1,7 @@
-import { Component } from 'react'
+import React, { Component } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Alert, Button, Spinner } from 'react-bootstrap'
+import MyModal from './MyModal' // Importa il componente modale
 
 class SectionCarousel extends Component {
   state = {
@@ -11,6 +12,8 @@ class SectionCarousel extends Component {
     searchResults: [],
     isLoading: true,
     isError: false,
+    showModal: false, // Stato per controllare il modale
+    selectedMovieId: null, // Stato per salvare l'imdbID del film selezionato
   }
 
   handleScroll = (e) => {
@@ -19,9 +22,6 @@ class SectionCarousel extends Component {
     const amount = 300
     const carousel = targetId.split('-')[0]
     const direction = targetId.split('-')[1]
-
-    console.log('carousel:', carousel)
-    console.log('direction:', direction)
 
     direction === 'Next'
       ? (document.getElementById(`${carousel}-Cards`).scrollLeft += amount)
@@ -42,13 +42,11 @@ class SectionCarousel extends Component {
         }
       })
       .then((dataArray) => {
-        console.log('SectionCarousel - dataArray', dataArray)
         this.setState({
           searchResults: dataArray.Search,
           isLoading: false,
         })
       })
-      .then(console.log('SectionCarousel - this.state:', this.state))
       .catch((err) => {
         console.log(err)
         this.setState({
@@ -62,81 +60,107 @@ class SectionCarousel extends Component {
     this.getData()
   }
 
+  handleImageClick = (movieId) => {
+    // Aggiorna lo stato per mostrare il modale e salvare il film selezionato
+    this.setState({
+      showModal: true,
+      selectedMovieId: movieId,
+    })
+  }
+
+  handleCloseModal = () => {
+    // Nasconde il modale
+    this.setState({
+      showModal: false,
+      selectedMovieId: null,
+    })
+  }
+
   render() {
     return (
-      <section>
-        <h2 className='fs-4 mt-5'>{this.state.genre}</h2>
-        {this.setState.isError && (
-          <Alert id={`${this.state.genreId}-Alert`} variant='danger'>
-            Problemi con il caricamento dei dati
-          </Alert>
-        )}
-        <div
-          id={`${this.state.genreId}Container`}
-          className='d-flex justify-content-around'
-        >
-          <Button
-            id={`${this.state.genreId}-Previous`}
-            className='p-4 my-auto bg-dark text-white btn-outline-dark'
-            onClick={(e) => this.handleScroll(e)}
-          >
-            <FontAwesomeIcon
-              id={`${this.state.genreId}-Previous-Icon`}
-              icon='fa-solid fa-chevron-left'
-            />
-          </Button>
-          {/* B Cards */}
+      <>
+        <section>
+          <h2 className='fs-4 mt-5'>{this.state.genre}</h2>
+          {this.state.isError && (
+            <Alert id={`${this.state.genreId}-Alert`} variant='danger'>
+              Problemi con il caricamento dei dati
+            </Alert>
+          )}
           <div
-            id={`${this.state.genreId}-Cards`}
-            className='d-flex align-content-center mt-3 p-3 overflow-hidden border border-1'
+            id={`${this.state.genreId}Container`}
+            className='d-flex justify-content-around'
           >
-            {/* Spinner */}
-            {this.setState.isLoading && (
-              <Button variant='dark' disabled>
-                <Spinner
-                  as='span'
-                  animation='grow'
-                  size='sm'
-                  role='status'
-                  aria-hidden='true'
-                />
-                Loading...
-              </Button>
-            )}
+            <Button
+              id={`${this.state.genreId}-Previous`}
+              className='p-4 my-auto bg-dark text-white btn-outline-dark'
+              onClick={(e) => this.handleScroll(e)}
+            >
+              <FontAwesomeIcon
+                id={`${this.state.genreId}-Previous-Icon`}
+                icon='fa-solid fa-chevron-left'
+              />
+            </Button>
 
-            {/* Immagini */}
-            {this.state.searchResults
-              .filter((data) => data.Poster !== 'N/A')
-              .map((data) => (
-                <div
-                  key={`${this.state.genreId}-${data.imdbID}`}
-                  className='d-inline-block me-2'
-                  data-bs-toggle='modal'
-                  data-bs-target='#cardInfoModal'
-                >
-                  <img
-                    id={data.imdbID}
-                    // width='300px'
-                    src={data.Poster}
-                    className='h-100'
-                    alt={data.Title}
+            {/* B Cards */}
+            <div
+              id={`${this.state.genreId}-Cards`}
+              className='d-flex align-content-center mt-3 p-3 overflow-hidden border border-1'
+            >
+              {/* Spinner */}
+              {this.state.isLoading && (
+                <Button variant='dark' disabled>
+                  <Spinner
+                    as='span'
+                    animation='grow'
+                    size='sm'
+                    role='status'
+                    aria-hidden='true'
                   />
-                </div>
-              ))}
-          </div>
+                  Loading...
+                </Button>
+              )}
 
-          <Button
-            id={`${this.state.genreId}-Next`}
-            className='p-4 my-auto bg-dark text-white btn-outline-dark'
-            onClick={(e) => this.handleScroll(e)}
-          >
-            <FontAwesomeIcon
-              id={`${this.state.genreId}-Next-Icon`}
-              icon='fa-solid fa-chevron-right'
-            />
-          </Button>
-        </div>
-      </section>
+              {/* Immagini */}
+              {this.state.searchResults
+                .filter((data) => data.Poster !== 'N/A')
+                .map((data) => (
+                  <div
+                    key={`${this.state.genreId}-${data.imdbID}`}
+                    className='d-inline-block me-2'
+                    onClick={() => this.handleImageClick(data.imdbID)} // Evento click
+                  >
+                    <img
+                      id={data.imdbID}
+                      src={data.Poster}
+                      className='h-100'
+                      alt={data.Title}
+                    />
+                  </div>
+                ))}
+            </div>
+
+            <Button
+              id={`${this.state.genreId}-Next`}
+              className='p-4 my-auto bg-dark text-white btn-outline-dark'
+              onClick={(e) => this.handleScroll(e)}
+            >
+              <FontAwesomeIcon
+                id={`${this.state.genreId}-Next-Icon`}
+                icon='fa-solid fa-chevron-right'
+              />
+            </Button>
+          </div>
+        </section>
+
+        {/* Modale */}
+        {this.state.showModal && (
+          <MyModal
+            show={this.state.showModal}
+            movieId={this.state.selectedMovieId} // Passa l'ID del film selezionato
+            onHide={this.handleCloseModal} // Gestione chiusura
+          />
+        )}
+      </>
     )
   }
 }

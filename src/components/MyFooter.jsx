@@ -1,12 +1,13 @@
 import { Component } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Container, Row, Col, Button } from 'react-bootstrap'
+import FooterNav from './FooterNav'
 
 function MyFooter() {
   return (
     <>
       {/* Social Icons */}
-      <div id='socialIcons' className='mt-5 text-center'>
+      <div id='socialIcons' className='mt-5 ms-2'>
         <FontAwesomeIcon
           icon='fa-brands fa-square-facebook'
           className='mx-3 fs-4'
@@ -19,10 +20,50 @@ function MyFooter() {
       {/* Bottom Navigation Bars */}
       <Container id='bottomNavBars' className='mt-3'>
         <Row>
-          <Col id='footerLinks1'></Col>
-          <Col id='footerLinks2'></Col>
-          <Col id='footerLinks3'></Col>
-          <Col id='footerLinks4'></Col>
+          <Col id='footerLinks1'>
+            <FooterNav
+              id='footerNav1'
+              links={[
+                { text: 'Audio And Subtitles', href: '#' },
+                { text: 'Media Center', href: '#' },
+                { text: 'Privacy', href: '#' },
+                { text: 'Contact Us', href: '#' },
+              ]}
+            />
+          </Col>
+          <Col id='footerLinks2'>
+            {' '}
+            <FooterNav
+              id='footerNav2'
+              links={[
+                { text: 'Audio Description', href: '#' },
+                { text: 'Investor Relation', href: '#' },
+                { text: 'Legal Notices', href: '#' },
+              ]}
+            />
+          </Col>
+          <Col id='footerLinks3'>
+            {' '}
+            <FooterNav
+              id='footerNav3'
+              links={[
+                { text: 'Help Center', href: '#' },
+                { text: 'Jobs', href: '#' },
+                { text: 'Cookie Preferencies', href: '#' },
+              ]}
+            />
+          </Col>
+          <Col id='footerLinks4'>
+            {' '}
+            <FooterNav
+              id='footerNav4'
+              links={[
+                { text: 'Gift Cards', href: '#' },
+                { text: 'Terms of Use', href: '#' },
+                { text: 'Corporate Infomation', href: '#' },
+              ]}
+            />
+          </Col>
         </Row>
       </Container>
 

@@ -47,6 +47,7 @@ const TVShowsSection = ({ genres }) => {
               id='cardsAsGrid'
               variant='outline-light'
               className='rounded-0 border-white-NF ms-3'
+              onClick={() => {}}
             >
               <FontAwesomeIcon
                 className='fs-4'

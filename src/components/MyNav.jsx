@@ -80,19 +80,4 @@ const MyNav = () => {
   )
 }
 
-class FooterNav extends Component {
-  render() {
-    return (
-      <Nav class='flex-column'>
-        {this.props.links.map((link, i) => (
-          <NavItem key={i}>
-            <NavLink href={link.href}>{link.text}</NavLink>
-          </NavItem>
-        ))}
-      </Nav>
-    )
-  }
-}
-
 export default MyNav
-export { FooterNav }
