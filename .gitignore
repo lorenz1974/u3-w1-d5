@@ -11,6 +11,13 @@
 # production
 /build
 
+# Old site
+/old
+
+# not to publish
+/trash
+/src/assets/scss
+
 # misc
 .DS_Store
 .env.local
