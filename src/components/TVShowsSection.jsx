@@ -40,6 +40,19 @@ const TVShowsSection = ({ genres }) => {
               id='cardsAsList'
               variant='outline-light'
               className='rounded-0 border-white-NF'
+              onClick={() => {
+                const cardsT = document.querySelectorAll('[id*="-Card"]')
+                cardsT.forEach((card) => {
+                  card.classList.toggle('flex-wrap')
+                  card.classList.toggle('justify-content-center')
+                })
+                const buttons = document.querySelectorAll(
+                  '[id$="-Next"], [id$="-Previous"]'
+                )
+                buttons.forEach((button) => {
+                  button.classList.toggle('d-none')
+                })
+              }}
             >
               <FontAwesomeIcon className='fs-4' icon='fa-solid fa-list' />
             </Button>
@@ -47,7 +60,19 @@ const TVShowsSection = ({ genres }) => {
               id='cardsAsGrid'
               variant='outline-light'
               className='rounded-0 border-white-NF ms-3'
-              onClick={() => {}}
+              onClick={() => {
+                const cardsT = document.querySelectorAll('[id*="-Card"]')
+                cardsT.forEach((card) => {
+                  card.classList.toggle('flex-wrap')
+                  card.classList.toggle('justify-content-center')
+                })
+                const buttons = document.querySelectorAll(
+                  '[id$="-Next"], [id$="-Previous"]'
+                )
+                buttons.forEach((button) => {
+                  button.classList.toggle('d-none')
+                })
+              }}
             >
               <FontAwesomeIcon
                 className='fs-4'
