@@ -1,16 +1,20 @@
 import React, { Component } from 'react'
 import { Modal, Button, Row, Col, Spinner, Alert } from 'react-bootstrap'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import Rating from './Rating'
 
 class MyModal extends Component {
   state = {
-    modalData: null, // Cambiato da array a oggetto
-    isLoading: true,
-    isError: false,
+    modalData: null, // Stato per i dati del film
+    isLoading: false, // Stato di caricamento
+    isError: false, // Stato di errore
   }
 
-  getModalData() {
-    fetch('https://www.omdbapi.com/?apikey=81a9ef25&i=' + this.props.movieId) // Usa il movieId passato nei props
+  // Metodo per recuperare i dati del film
+  getModalData = () => {
+    // Inizializza il caricamento
+    this.setState({ isLoading: true, isError: false })
+
+    fetch('https://www.omdbapi.com/?apikey=81a9ef25&i=' + this.props.movieid)
       .then((response) => {
         if (response.ok) {
           return response.json()
@@ -23,11 +27,13 @@ class MyModal extends Component {
         this.setState({
           modalData: data,
           isLoading: false,
+          isError: false,
         })
       })
       .catch((err) => {
-        console.error(err)
+        console.error('Errore:', err)
         this.setState({
+          modalData: null,
           isLoading: false,
           isError: true,
         })
@@ -42,15 +48,6 @@ class MyModal extends Component {
     const { modalData, isLoading, isError } = this.state
     const { onHide } = this.props
 
-    if (isLoading && <Spinner animation='grow' />) return null
-
-    if (
-      (isError || !modalData) && (
-        <Alert variant={'danger'}>Problema nel caricamento dei dati</Alert>
-      )
-    )
-      return null
-
     return (
       <Modal
         {...this.props}
@@ -64,44 +61,75 @@ class MyModal extends Component {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Row>
-            {/* Colonna immagine del poster */}
-            <Col md={4}>
-              <img
-                className='img-fluid shadow-lg rounded'
-                src={modalData.Poster}
-                alt={`Poster di ${modalData.Title}`}
-              />
-            </Col>
+          {/* Caricamento */}
+          {isLoading && (
+            <div className='text-center'>
+              <Spinner animation='border' role='status' />
+              <p>Caricamento in corso...</p>
+            </div>
+          )}
+          {/* Errore */}
+          {isError && (
+            <Alert variant='danger'>
+              Problema nel caricamento dei dati. Riprova più tardi.
+            </Alert>
+          )}
+          {/* Dati caricati */}
+          {!isLoading && !isError && modalData && (
+            <Row>
+              {/* Colonna immagine del poster */}
+              <Col md={4}>
+                <img
+                  className='img-fluid shadow-lg rounded'
+                  src={modalData.Poster}
+                  alt={`Poster di ${modalData.Title}`}
+                />
+              </Col>
 
-            {/* Colonna informazioni */}
-            <Col md={8}>
-              <h3 className='text-red-NF'>
-                {modalData.Title} ({modalData.Year})
-              </h3>
-              <p>
-                <strong>Genere:</strong> {modalData.Genre}
-              </p>
-              <p>
-                <strong>Trama:</strong> {modalData.Plot}
-              </p>
-              <p>
-                <strong>Regista:</strong> {modalData.Director}
-              </p>
-              <p>
-                <strong>Attori:</strong> {modalData.Actors}
-              </p>
-              <p>
-                <strong>Lingua:</strong> {modalData.Language}
-              </p>
-              <p>
-                <strong>Premi:</strong> {modalData.Awards}
-              </p>
-              <p>
-                <strong>Rating IMDb:</strong> {modalData.imdbRating} / 10
-              </p>
-            </Col>
-          </Row>
+              {/* Colonna informazioni */}
+              <Col md={8}>
+                <h3 className='text-red-NF'>
+                  {modalData.Title} ({modalData.Year})
+                </h3>
+                {modalData.Genre !== 'N/A' && (
+                  <p>
+                    <strong>Genere:</strong> {modalData.Genre}
+                  </p>
+                )}
+                {modalData.Plot !== 'N/A' && (
+                  <p>
+                    <strong>Trama:</strong> {modalData.Plot}
+                  </p>
+                )}
+                {modalData.Director !== 'N/A' && (
+                  <p>
+                    <strong>Regista:</strong> {modalData.Director}
+                  </p>
+                )}
+                {modalData.Actors !== 'N/A' && (
+                  <p>
+                    <strong>Attori:</strong> {modalData.Actors}
+                  </p>
+                )}
+                {modalData.Language !== 'N/A' && (
+                  <p>
+                    <strong>Lingua:</strong> {modalData.Language}
+                  </p>
+                )}
+                {modalData.Awards !== 'N/A' && (
+                  <p>
+                    <strong>Premi:</strong> {modalData.Awards}
+                  </p>
+                )}
+                {modalData.imdbRating !== 'N/A' && (
+                  <p>
+                    <strong>Rating IMDb:</strong>{' '}
+                    <Rating rate={modalData.imdbRating} max='10' />
+                  </p>
+                )}
+              </Col>
+            </Row>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button className='btn-red-NF text-white-NF' onClick={onHide}>

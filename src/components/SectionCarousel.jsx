@@ -16,6 +16,7 @@ class SectionCarousel extends Component {
     selectedMovieId: null, // Stato per salvare l'imdbID del film selezionato
   }
 
+  // Funzione per la gestione dello scrool delle card
   handleScroll = (e) => {
     const targetId = e.target.id ? e.target.id : e.target.parentElement.id
 
@@ -28,36 +29,69 @@ class SectionCarousel extends Component {
       : (document.getElementById(`${carousel}-Cards`).scrollLeft -= amount)
   }
 
-  getData() {
-    fetch(
-      'https://www.omdbapi.com/?apikey=81a9ef25&s=' + this.state.searchTerms
-    )
-      .then((response) => {
-        if (response.ok) {
-          return response.json()
-        } else {
-          throw new Error(
-            'SectionCarousel - fetch - Errore nel recupero dei dati'
-          )
-        }
-      })
-      .then((dataArray) => {
-        this.setState({
-          searchResults: dataArray.Search,
-          isLoading: false,
-        })
-      })
-      .catch((err) => {
-        console.log(err)
-        this.setState({
-          isLoading: false,
-          isError: true,
-        })
-      })
+  // Recupera i dati di un film specifico
+  async getMovieDataById(movieId) {
+    try {
+      const response = await fetch(
+        'https://www.omdbapi.com/?apikey=81a9ef25&i=' + movieId
+      )
+      if (!response.ok) {
+        throw new Error('Errore nel recupero dei dati del film')
+      }
+      const data = await response.json()
+      return data // Ritorna i dati del film
+    } catch (error) {
+      console.error('Errore in getMovieDataById:', error)
+      throw error // Propaga l'errore
+    }
   }
 
-  componentDidMount() {
-    this.getData()
+  // Recupera i dati di ricerca
+  async getSearchData() {
+    try {
+      const response = await fetch(
+        'https://www.omdbapi.com/?apikey=81a9ef25&s=' + this.state.searchTerms
+      )
+      if (!response.ok) {
+        throw new Error('Errore nel recupero dei dati di ricerca')
+      }
+      const data = await response.json()
+      return data.Search // Ritorna i risultati di ricerca
+    } catch (error) {
+      console.error('Errore in getSearchData:', error)
+      throw error
+    }
+  }
+
+  // Recupera i dati e aggiorna lo stato
+  async componentDidMount() {
+    try {
+      this.setState({ isLoading: true })
+
+      let searchResults = []
+      if (this.state.movies.length > 0) {
+        // Recupera i dati di ogni film in parallelo
+        searchResults = await Promise.all(
+          this.state.movies.map((movieId) => this.getMovieDataById(movieId))
+        )
+      } else {
+        // Recupera i dati dalla ricerca
+        searchResults = await this.getSearchData()
+      }
+
+      // Aggiorna lo stato con i dati recuperati
+      this.setState({
+        searchResults,
+        isLoading: false,
+        isError: false,
+      })
+    } catch (error) {
+      // Gestisce eventuali errori
+      this.setState({
+        isLoading: false,
+        isError: true,
+      })
+    }
   }
 
   handleImageClick = (movieId) => {
@@ -77,75 +111,80 @@ class SectionCarousel extends Component {
   }
 
   render() {
+    const {
+      genre,
+      genreId,
+      isLoading,
+      isError,
+      searchResults,
+      showModal,
+      selectedMovieId,
+    } = this.state
+
     return (
       <>
         <section>
-          <h2 className='fs-4 mt-5'>{this.state.genre}</h2>
-          {this.state.isError && (
-            <Alert id={`${this.state.genreId}-Alert`} variant='danger'>
+          <h2 className='fs-4 mt-5'>{genre}</h2>
+          {isError && (
+            <Alert id={`${genreId}-Alert`} variant='danger'>
               Problemi con il caricamento dei dati
             </Alert>
           )}
           <div
-            id={`${this.state.genreId}Container`}
+            id={`${genreId}Container`}
             className='d-flex justify-content-around'
           >
             <Button
-              id={`${this.state.genreId}-Previous`}
+              id={`${genreId}-Previous`}
               className='p-4 my-auto bg-dark text-white btn-outline-dark'
-              onClick={(e) => this.handleScroll(e)}
+              onClick={this.handleScroll}
             >
               <FontAwesomeIcon
-                id={`${this.state.genreId}-Previous-Icon`}
+                id={`${genreId}-Previous-Icon`}
                 icon='fa-solid fa-chevron-left'
               />
             </Button>
 
-            {/* B Cards */}
+            {/* Cards */}
             <div
-              id={`${this.state.genreId}-Cards`}
+              id={`${genreId}-Cards`}
               className='d-flex align-content-center mt-3 p-3 overflow-hidden border border-1'
             >
               {/* Spinner */}
-              {this.state.isLoading && (
-                <Button variant='dark' disabled>
-                  <Spinner
-                    as='span'
-                    animation='grow'
-                    size='sm'
-                    role='status'
-                    aria-hidden='true'
-                  />
-                  Loading...
-                </Button>
+              {isLoading && (
+                <div className='text-center'>
+                  <Spinner animation='grow' size='sm' role='status' />
+                  <p>Caricamento...</p>
+                </div>
               )}
 
               {/* Immagini */}
-              {this.state.searchResults
-                .filter((data) => data.Poster !== 'N/A')
-                .map((data) => (
-                  <div
-                    key={`${this.state.genreId}-${data.imdbID}`}
-                    className='d-inline-block me-2'
-                    onClick={() => this.handleImageClick(data.imdbID)} // Evento click
-                  >
-                    <img
-                      id={data.imdbID}
-                      src={data.Poster}
-                      className='h-100'
-                      alt={data.Title}
-                    />
-                  </div>
-                ))}
+              {!isLoading &&
+                searchResults
+                  .filter((data) => data.Poster !== 'N/A')
+                  .map((data) => (
+                    <div
+                      key={`${genreId}-${data.imdbID}`}
+                      className='d-inline-block me-2'
+                      onClick={() => this.handleImageClick(data.imdbID)}
+                    >
+                      <img
+                        id={data.imdbID}
+                        src={data.Poster}
+                        className=''
+                        alt={data.Title}
+                      />
+                    </div>
+                  ))}
             </div>
 
             <Button
-              id={`${this.state.genreId}-Next`}
+              id={`${genreId}-Next`}
               className='p-4 my-auto bg-dark text-white btn-outline-dark'
-              onClick={(e) => this.handleScroll(e)}
+              onClick={this.handleScroll}
             >
               <FontAwesomeIcon
-                id={`${this.state.genreId}-Next-Icon`}
+                id={`${genreId}-Next-Icon`}
                 icon='fa-solid fa-chevron-right'
               />
             </Button>
@@ -153,10 +192,10 @@ class SectionCarousel extends Component {
         </section>
 
         {/* Modale */}
-        {this.state.showModal && (
+        {showModal && (
           <MyModal
-            show={this.state.showModal}
-            movieId={this.state.selectedMovieId} // Passa l'ID del film selezionato
+            show={showModal}
+            movieid={selectedMovieId} // Passa l'ID del film selezionato
             onHide={this.handleCloseModal} // Gestione chiusura
           />
         )}
